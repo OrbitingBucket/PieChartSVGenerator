@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Career Map - Circle Graphic Generator</title>
+    <style>
+        body {
+            font-family: 'Open Sans', Arial, sans-serif;
+            max-width: 40%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        h2 {
+            text-align: center;
+            color: #555;
+            font-size: 1.2rem;
+            margin-top: -5px;
+            margin-bottom: 20px;
+        }
+        p.description {
+            text-align: left;
+            color: #555;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            padding-left: 40px; /* Added left padding */
+        }
+        #container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        #colorOptions {
+            width: 40%; /* Reduced width */
+            padding-top: 20px;
+        }
+        #svgContainer {
+            text-align: center;
+            width: 55%; /* Adjusted width */
+        }
+        .color-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+        .color-preview {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            vertical-align: middle;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        #downloadLink {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            text-align: center;
+        }
+        #downloadContainer {
+            text-align: center;
+        }
+        #downloadLink:hover {
+            background-color: #0056b3;
+        }
+        .notice {
+            color: #d9534f;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>Career Map</h1>
+    <h2>Pie Chart Generator</h2>
+    <p class="description">
+        1. Select the domains for every job position in your path<br>
+        2. Download the graphic indicator<br>
+        3. Add to the Career Map template to create your individual path
+    </p>
+    
+    <div id="container">
+        <div id="colorOptions"></div>
+        <div id="svgContainer"></div>
+    </div>
+    
+    <div id="downloadContainer">
+        <a id="downloadLink" style="display: none;">Download SVG</a>
+    </div>
+
+    <script>
+        const predefinedColors = {
+            "Technical expertise": "#6BC3B6",
+            "Project": "#5FC0D7",
+            "Business development": "#DE4E6A",
+            "Management": "#F5D474",
+            "Business partners": "#C77CCF"
+        };
+
+        const radius = 45;
+        const centerX = 50;
+        const centerY = 50;
+        const strokeWidth = 5;
+
+        function createColorOptions() {
+            const colorOptions = document.getElementById('colorOptions');
+            colorOptions.innerHTML = '<h3>Select domains to include:</h3>';
+            for (const [name, color] of Object.entries(predefinedColors)) {
+                colorOptions.innerHTML += `
+                    <label class="color-option">
+                        <input type="checkbox" name="colorChoice" value="${color}" onchange="updateSVG()">
+                        <span class="color-preview" style="background-color: ${color};"></span>
+                        ${name}
+                    </label>
+                `;
+            }
+        }
+
+        function updateSVG() {
+            const selectedColors = Array.from(document.querySelectorAll('input[name="colorChoice"]:checked'))
+                .map(input => input.value);
+
+            const svgContainer = document.getElementById('svgContainer');
+            svgContainer.innerHTML = '';
+
+            if (selectedColors.length === 0) {
+                svgContainer.innerHTML = '<p class="notice">Please select at least one domain.</p>';
+                document.getElementById('downloadLink').style.display = 'none';
+                return;
+            }
+
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("width", "300");
+            svg.setAttribute("height", "300");
+            svg.setAttribute("viewBox", "-5 -5 110 110");
+
+            if (selectedColors.length === 1) {
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", centerX);
+                circle.setAttribute("cy", centerY);
+                circle.setAttribute("r", radius);
+                circle.setAttribute("fill", selectedColors[0]);
+                svg.appendChild(circle);
+            } else {
+                const angleStep = 360 / selectedColors.length;
+                let startAngle = 0;
+
+                for (let i = 0; i < selectedColors.length; i++) {
+                    const endAngle = startAngle + angleStep;
+                    const largeArcFlag = angleStep > 180 ? 1 : 0;
+                    
+                    const x1 = centerX + radius * Math.cos(Math.PI * startAngle / 180);
+                    const y1 = centerY + radius * Math.sin(Math.PI * startAngle / 180);
+                    const x2 = centerX + radius * Math.cos(Math.PI * endAngle / 180);
+                    const y2 = centerY + radius * Math.sin(Math.PI * endAngle / 180);
+
+                    const pathData = `M${centerX},${centerY} L${x1},${y1} A${radius},${radius} 0 ${largeArcFlag},1 ${x2},${y2} Z`;
+
+                    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    path.setAttribute("d", pathData);
+                    path.setAttribute("fill", selectedColors[i]);
+                    svg.appendChild(path);
+
+                    startAngle = endAngle;
+                }
+
+                const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                g.setAttribute("stroke", "#66859A");
+                g.setAttribute("stroke-width", strokeWidth);
+
+                for (let i = 0; i < selectedColors.length; i++) {
+                    const angle = (360 / selectedColors.length) * i;
+                    const x = centerX + radius * Math.cos(Math.PI * angle / 180);
+                    const y = centerY + radius * Math.sin(Math.PI * angle / 180);
+
+                    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    line.setAttribute("x1", centerX);
+                    line.setAttribute("y1", centerY);
+                    line.setAttribute("x2", x);
+                    line.setAttribute("y2", y);
+                    g.appendChild(line);
+                }
+
+                svg.appendChild(g);
+            }
+
+            const outerCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            outerCircle.setAttribute("cx", centerX);
+            outerCircle.setAttribute("cy", centerY);
+            outerCircle.setAttribute("r", radius);
+            outerCircle.setAttribute("fill", "none");
+            outerCircle.setAttribute("stroke", "#66859A");
+            outerCircle.setAttribute("stroke-width", strokeWidth);
+            svg.appendChild(outerCircle);
+
+            svgContainer.appendChild(svg);
+
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const svgBlob = new Blob([svgData], {type: "image/svg+xml;charset=utf-8"});
+            const svgUrl = URL.createObjectURL(svgBlob);
+            const downloadLink = document.getElementById('downloadLink');
+            downloadLink.href = svgUrl;
+            downloadLink.download = "circle_graphic.svg";
+            downloadLink.style.display = "inline-block";
+        }
+
+        createColorOptions();
+        updateSVG();
+    </script>
+</body>
+</html>
