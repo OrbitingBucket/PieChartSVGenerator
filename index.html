@@ -155,7 +155,7 @@
                 svg.appendChild(circle);
             } else {
                 const angleStep = 360 / selectedColors.length;
-                let startAngle = 0;
+                let startAngle = 90; // Adjust the starting angle by 90 degrees for rotation
 
                 for (let i = 0; i < selectedColors.length; i++) {
                     const endAngle = startAngle + angleStep;
@@ -181,7 +181,7 @@
                 g.setAttribute("stroke-width", strokeWidth);
 
                 for (let i = 0; i < selectedColors.length; i++) {
-                    const angle = (360 / selectedColors.length) * i;
+                    const angle = (360 / selectedColors.length) * i + 90; // Rotate separation lines as well
                     const x = centerX + radius * Math.cos(Math.PI * angle / 180);
                     const y = centerY + radius * Math.sin(Math.PI * angle / 180);
 
